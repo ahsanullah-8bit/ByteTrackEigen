@@ -26,7 +26,12 @@ elseif (DEFINED CMAKE_TOOLCHAIN_FILE
 
 else()
     message("Setting up eigen3.4.0 manually.")
-    set(Eigen3_DIR "${CMAKE_SOURCE_DIR}/ext/Eigen3")
+    set(BASE_DEPS_DIR "${CMAKE_BINARY_DIR}/_deps")
+    set(Eigen3_DIR "${BASE_DEPS_DIR}/Eigen3")
+    set(Eigen3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip")
+    set(Eigen3_ZIP "${BASE_DEPS_DIR}/eigen-3.4.0.zip")
+    set(Eigen3_EXTRACT "${BASE_DEPS_DIR}/eigen-3.4.0")
+    set(Eigen3_BUILD "${BASE_DEPS_DIR}/eigen-3.4.0-build")
 
     # Create the external directory if it does not exist
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/ext/")
@@ -36,11 +41,6 @@ else()
     # Check if Eigen directory exists
     if(NOT EXISTS ${Eigen3_DIR})
         # Eigen URL and expected ZIP file path
-        set(BASE_DEPS_DIR "${CMAKE_BINARY_DIR}/_deps")
-        set(Eigen3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip")
-        set(Eigen3_ZIP "${BASE_DEPS_DIR}/eigen-3.4.0.zip")
-        set(Eigen3_EXTRACT "${BASE_DEPS_DIR}/eigen-3.4.0")
-        set(Eigen3_BUILD "${BASE_DEPS_DIR}/eigen-3.4.0-build")
 
         # Download Eigen
         message(STATUS "Downloading Eigen to ${Eigen3_ZIP}")
