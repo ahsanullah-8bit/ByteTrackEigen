@@ -38,7 +38,7 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
 
 - CMake 3.20 or higher.
 - C++17 or higher.
-- [Eigen library](http://eigen.tuxfamily.org) (automatically downloaded by CMake).
+- [Eigen3 library](http://eigen.tuxfamily.org) (automatically downloaded by CMake).
 
 ## Building the Library
 
@@ -46,19 +46,20 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
    ```bash
    git clone https://github.com/cj-mills/byte-track-eigen.git
    ```
+   
 2. Navigate to the project directory:
    ```bash
    cd byte-track-eigen
    ```
-3. Build the project using CMake:
+   
+3. Build the project using CMake. Use any of the three options depending availability of Eigen3
+   * Set `Eigen3_DIR`, to a pre-installed Eigen3.
+   * Use vcpkg, either by setting `-DCMAKE_TOOLCHAIN_FILE=<vcpkg_dir>` or `VCPKG_ROOT` env variable.
+   * Let CMake handle everything.
+   
    ```bash
-   mkdir build && cd build
+   cmake -S . -B build
    ```
-   ```bash
-   cmake ..
-   ```
-
-
 
 ## Usage
 
