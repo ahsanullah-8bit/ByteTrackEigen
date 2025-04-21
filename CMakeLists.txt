@@ -26,7 +26,12 @@ elseif (DEFINED CMAKE_TOOLCHAIN_FILE
 
 else()
     message("Setting up eigen3.4.0 manually.")
-    set(Eigen3_DIR "${CMAKE_SOURCE_DIR}/ext/Eigen3")
+    set(BASE_DEPS_DIR "${CMAKE_BINARY_DIR}/_deps")
+    set(Eigen3_DIR "${BASE_DEPS_DIR}/Eigen3")
+    set(Eigen3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip")
+    set(Eigen3_ZIP "${BASE_DEPS_DIR}/eigen-3.4.0.zip")
+    set(Eigen3_EXTRACT "${BASE_DEPS_DIR}/eigen-3.4.0")
+    set(Eigen3_BUILD "${BASE_DEPS_DIR}/eigen-3.4.0-build")
 
     # Create the external directory if it does not exist
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/ext/")
@@ -36,8 +41,6 @@ else()
     # Check if Eigen directory exists
     if(NOT EXISTS ${Eigen3_DIR})
         # Eigen URL and expected ZIP file path
-        set(Eigen3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip")
-        set(Eigen3_ZIP "${CMAKE_BINARY_DIR}/eigen-3.4.0.zip")
 
         # Download Eigen
         message(STATUS "Downloading Eigen to ${Eigen3_ZIP}")
@@ -51,12 +54,30 @@ else()
             # Extract Eigen
             message(STATUS "Extracting Eigen")
             execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${Eigen3_ZIP}
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                WORKING_DIRECTORY "${BASE_DEPS_DIR}"    # <bin-dir>/_deps/
                 RESULT_VARIABLE EIGEN3_EXTRACT_RESULT)
 
             # Check extraction status and rename directory
             if(EIGEN3_EXTRACT_RESULT EQUAL 0)
-                file(RENAME "${CMAKE_BINARY_DIR}/eigen-3.4.0" ${Eigen3_DIR})
+                # Configure into ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} -S ${Eigen3_EXTRACT} -B ${Eigen3_BUILD}
+                          -DCMAKE_INSTALL_PREFIX=${Eigen3_DIR}
+                  RESULT_VARIABLE EIGEN3_CFG_RES
+                )
+
+                # 2) Build from ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} --build ${Eigen3_BUILD}
+                  RESULT_VARIABLE EIGEN3_BUILD_RES
+                )
+
+                # 3) Install from ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} --install ${Eigen3_BUILD} --prefix ${Eigen3_DIR}
+                  RESULT_VARIABLE EIGEN3_INS_RES
+                )
+
             else()
                 message(FATAL_ERROR "Failed to extract Eigen")
             endif()
@@ -66,6 +87,7 @@ else()
     endif()
 
     # Include Eigen and project headers
+    list(APPEND CMAKE_PREFIX_PATH ${Eigen3_DIR})
     find_package(Eigen3 3.4.0 REQUIRED)
 endif()
 

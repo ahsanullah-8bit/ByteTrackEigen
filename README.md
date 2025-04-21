@@ -60,6 +60,8 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
    ```bash
    cmake -S . -B build
    ```
+   
+4. **Note:** You cannot really install this project yet. You should add it as a submodule.
 
 ## Usage
 
