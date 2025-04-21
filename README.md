@@ -44,12 +44,12 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/cj-mills/byte-track-eigen.git
+   git clone https://github.com/ahsanullah-8bit/ByteTrackEigen.git
    ```
    
 2. Navigate to the project directory:
    ```bash
-   cd byte-track-eigen
+   cd ByteTrackEigen
    ```
    
 3. Build the project using CMake. Use any of the three options depending availability of Eigen3
