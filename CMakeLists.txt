@@ -78,7 +78,6 @@ else()
                   RESULT_VARIABLE EIGEN3_INS_RES
                 )
 
-                # file(RENAME "${CMAKE_BINARY_DIR}/eigen-3.4.0" ${Eigen3_DIR})
             else()
                 message(FATAL_ERROR "Failed to extract Eigen")
             endif()
@@ -88,6 +87,7 @@ else()
     endif()
 
     # Include Eigen and project headers
+    list(APPEND CMAKE_PREFIX_PATH ${Eigen3_DIR})
     find_package(Eigen3 3.4.0 REQUIRED)
 endif()
 
