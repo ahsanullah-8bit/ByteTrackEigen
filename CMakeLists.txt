@@ -36,8 +36,11 @@ else()
     # Check if Eigen directory exists
     if(NOT EXISTS ${Eigen3_DIR})
         # Eigen URL and expected ZIP file path
+        set(BASE_DEPS_DIR "${CMAKE_BINARY_DIR}/_deps")
         set(Eigen3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.zip")
-        set(Eigen3_ZIP "${CMAKE_BINARY_DIR}/eigen-3.4.0.zip")
+        set(Eigen3_ZIP "${BASE_DEPS_DIR}/eigen-3.4.0.zip")
+        set(Eigen3_EXTRACT "${BASE_DEPS_DIR}/eigen-3.4.0")
+        set(Eigen3_BUILD "${BASE_DEPS_DIR}/eigen-3.4.0-build")
 
         # Download Eigen
         message(STATUS "Downloading Eigen to ${Eigen3_ZIP}")
@@ -51,12 +54,31 @@ else()
             # Extract Eigen
             message(STATUS "Extracting Eigen")
             execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${Eigen3_ZIP}
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                WORKING_DIRECTORY "${BASE_DEPS_DIR}"    # <bin-dir>/_deps/
                 RESULT_VARIABLE EIGEN3_EXTRACT_RESULT)
 
             # Check extraction status and rename directory
             if(EIGEN3_EXTRACT_RESULT EQUAL 0)
-                file(RENAME "${CMAKE_BINARY_DIR}/eigen-3.4.0" ${Eigen3_DIR})
+                # Configure into ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} -S ${Eigen3_EXTRACT} -B ${Eigen3_BUILD}
+                          -DCMAKE_INSTALL_PREFIX=${Eigen3_DIR}
+                  RESULT_VARIABLE EIGEN3_CFG_RES
+                )
+
+                # 2) Build from ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} --build ${Eigen3_BUILD}
+                  RESULT_VARIABLE EIGEN3_BUILD_RES
+                )
+
+                # 3) Install from ext-build
+                execute_process(
+                  COMMAND ${CMAKE_COMMAND} --install ${Eigen3_BUILD} --prefix ${Eigen3_DIR}
+                  RESULT_VARIABLE EIGEN3_INS_RES
+                )
+
+                # file(RENAME "${CMAKE_BINARY_DIR}/eigen-3.4.0" ${Eigen3_DIR})
             else()
                 message(FATAL_ERROR "Failed to extract Eigen")
             endif()
