@@ -105,5 +105,4 @@ public:
      * @return std::vector<KalmanBBoxTrack> List of updated tracks after processing the frame.
      */
     std::vector<KalmanBBoxTrack> process_frame_detections(const Eigen::MatrixXf& output_results);
-
 };

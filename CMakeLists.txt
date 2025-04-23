@@ -10,11 +10,15 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# Not a solid solution, but we'll be handling it later.
+set(ByteTrackEigen_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" CACHE STRING "Directory containing ByteTrackEigen's includes")
+
 # If     Eigen3_DIR is set, use that
 # elseIf CMAKE_TOOLCHAIN_FILE is set to a vcpkg dir or VCPKG_ROOT env is set, use vcpkg.
 # else   download, extract and set Eigen3_DIR manually.
 if (DEFINED Eigen3_DIR)
-    message("Using custom ${Eigen3_DIR} for eigen3.4.0.")
+    message("Using custom ${Eigen3_DIR} for eigen3.4.0.
+        WARNING: This may be miss-informing since vcpkg also defines Eigen3_DIR.")
     find_package(Eigen3 3.4.0 REQUIRED)
 
 elseif (DEFINED CMAKE_TOOLCHAIN_FILE
@@ -124,7 +128,7 @@ set_target_properties(bytetrackeigen PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}
 )
 
-target_include_directories(bytetrackeigen PRIVATE include)
+target_include_directories(bytetrackeigen PRIVATE ${ByteTrackEigen_INCLUDE_DIRS})
 # Definitions for DLL export, if needed
 target_compile_definitions(bytetrackeigen PRIVATE BUILDING_BYTE_TRACK_EIGEN)
 target_link_libraries(bytetrackeigen PRIVATE Eigen3::Eigen)
