@@ -40,7 +40,7 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
 - C++17 or higher.
 - [Eigen3 library](http://eigen.tuxfamily.org) 
 
-[!Note]
+> [!Note]
 > You can use your custom installation of Eigen3 and set `-DEigen3_DIR` to `<eigen3>/lib/cmake/Eigen3` or `-DEigen3_ROOT` to the root of Eigen3,  
 > use vcpkg or let cmake handle it for you.
 
