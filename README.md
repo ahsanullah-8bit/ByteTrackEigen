@@ -1,4 +1,4 @@
-# ByteTrack-Eigen
+# ByteTrackEigen
 
 
 ## Introduction
@@ -51,10 +51,11 @@ https://github.com/cj-mills/byte-track-eigen/assets/9126128/1f3b0fa4-676c-4050-8
    cd ByteTrackEigen
    ```
    
-2. Build the project using CMake. Use any of the three options depending availability of Eigen3
+2. Build the project using CMake.
 
    ```bash
    cmake -S . -B build
+   cmake build --build
    ```
    
 **Note:** This project doesn't define install targets yet. You should add it as a submodule.
