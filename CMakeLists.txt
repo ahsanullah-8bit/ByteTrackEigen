@@ -49,6 +49,10 @@ set_target_properties(bytetrackeigen PROPERTIES
 )
 
 # Definitions for DLL export, if needed
+if(NOT BUILD_SHARED_LIBS)
+    target_compile_definitions(bytetrackeigen PUBLIC BYTE_TRACK_EIGEN_STATIC_DEFINE)
+endif()
+
 target_compile_definitions(bytetrackeigen PRIVATE BUILDING_BYTE_TRACK_EIGEN)
 target_include_directories(bytetrackeigen PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(bytetrackeigen PRIVATE Eigen3::Eigen)
