@@ -146,6 +146,9 @@ void KalmanBBoxTrack::update_track(const KalmanBBoxTrack& new_track, int frame_i
     
     std::tie(this->mean, this->covariance) = this->kalman_filter.update(this->mean, this->covariance, this->tlwh_to_xyah(new_track.tlwh()));
 
+    // Update _tlwh to reflect the new detection position for fallback consistency
+    this->_tlwh = new_track._tlwh;
+
     this->state = TrackState::Tracked;
     this->is_activated = true;
 
@@ -211,14 +214,15 @@ Eigen::Vector4d KalmanBBoxTrack::tlbr_to_tlwh(const Eigen::Vector4d tlbr) {
  * @return Eigen::Vector4d Bounding box in tlwh format.
  */
 Eigen::Vector4d KalmanBBoxTrack::tlwh() const {
-    if (mean.isZero(0)) { // Checking if 'mean' is uninitialized or zero
+    // Check if mean is uninitialized or doesn't have valid size
+    if (mean.size() < 4 || mean.isZero(0)) {
         return _tlwh;
     }
 
     Eigen::Vector4d ret = mean.head(4);
-    ret[2] *= ret[3];
-    ret[0] -= ret[2] / 2.0;
-    ret[1] -= ret[3] / 2.0;
+    ret[2] *= ret[3];  // width = aspect_ratio * height
+    ret[0] -= ret[2] / 2.0;  // x = center_x - width/2
+    ret[1] -= ret[3] / 2.0;  // y = center_y - height/2
 
     return ret;
 }
