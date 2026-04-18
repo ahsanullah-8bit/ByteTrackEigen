@@ -131,6 +131,80 @@ std::pair<std::vector<KalmanBBoxTrack>, std::vector<KalmanBBoxTrack>> BYTETracke
 }
 
 /**
+ * @brief Validates detections against existing tracks to filter out jittery/conflicting detections.
+ *
+ * This method checks if detections have reasonable motion relative to nearby tracks. Detections
+ * that represent sudden large changes in bounding box size or unreasonable position jumps are
+ * likely due to misdetections (e.g., detection merging/splitting). These are filtered out to
+ * prevent the Kalman filter from following noisy detections.
+ *
+ * For vehicles on a road, we expect:
+ * - Size changes < 40% per frame (excluding very rapid approaches)
+ * - Position changes consistent with velocity estimates
+ *
+ * @param detections Vector of KalmanBBoxTrack detections to validate
+ * @param tracks Vector of existing tracks to compare against
+ * @return Vector of validated detections
+ */
+std::vector<KalmanBBoxTrack> BYTETracker::validate_detections_against_tracks(
+	const std::vector<KalmanBBoxTrack>& detections,
+	const std::vector<std::shared_ptr<KalmanBBoxTrack>>& tracks
+) {
+	std::vector<KalmanBBoxTrack> validated_detections;
+
+	// If no tracks exist, all detections are valid (can't validate against nothing)
+	if (tracks.empty()) {
+		return detections;
+	}
+
+	const float MAX_SIZE_CHANGE_RATIO = 0.40f;  // Max 40% change in box area per frame
+	const float MAX_POSITION_VARIANCE = 50.0f;   // Max variance in position (pixels)
+
+	for (const auto& det : detections) {
+		Eigen::Vector4d det_tlwh = det.tlwh();
+		float det_area = det_tlwh[2] * det_tlwh[3];
+		float det_cx = det_tlwh[0] + det_tlwh[2] / 2.0f;
+		float det_cy = det_tlwh[1] + det_tlwh[3] / 2.0f;
+
+		bool is_valid = true;
+
+		// Check detection against all nearby tracks
+		for (const auto& track : tracks) {
+			if (track->get_state() != TrackState::Tracked) continue;
+
+			Eigen::Vector4d track_tlwh = track->tlwh();
+			float track_area = track_tlwh[2] * track_tlwh[3];
+			float track_cx = track_tlwh[0] + track_tlwh[2] / 2.0f;
+			float track_cy = track_tlwh[1] + track_tlwh[3] / 2.0f;
+
+			// Check if detection is geographically close to this track
+			float dx = det_cx - track_cx;
+			float dy = det_cy - track_cy;
+			float distance = std::sqrt(dx * dx + dy * dy);
+
+			// Only validate if detection is close enough to be related to this track
+			if (distance < track_tlwh[2] + track_tlwh[3]) {  // Within ~sum of width+height
+				// Check for unreasonable size changes
+				float area_ratio = det_area > 0 ? track_area / det_area : 1.0f;
+				if (area_ratio < 1.0f) area_ratio = 1.0f / area_ratio;  // Normalize to >= 1
+
+				if (area_ratio > (1.0f + MAX_SIZE_CHANGE_RATIO)) {
+					// Detection size differs too much from track - likely a misdetection
+					is_valid = false;
+					break;
+				}
+			}
+		}
+
+		if (is_valid) {
+			validated_detections.push_back(det);
+		}
+	}
+
+	return validated_detections;
+}
+
+/**
  * @brief Partition tracks into active and inactive based on their activation status.
  *
  * This method categorizes the currently tracked objects into two groups: active and inactive.
@@ -385,6 +459,10 @@ std::vector<KalmanBBoxTrack> BYTETracker::process_frame_detections(const Eigen::
 	// Prepare track pool for matching and update state prediction for each track
 	std::vector<std::shared_ptr<KalmanBBoxTrack>> track_pool = join_tracks(active_tracked_tracks, this->lost_tracks);
 	KalmanBBoxTrack::multi_predict(track_pool);
+
+	// Validate detections to filter out jittery/conflicting ones
+	high_confidence_detections = validate_detections_against_tracks(high_confidence_detections, track_pool);
+	lower_confidence_detections = validate_detections_against_tracks(lower_confidence_detections, track_pool);
 
 	// Match tracks to high confidence detections and update their states
 	auto [track_detection_pair_indices, unpaired_track_indices, unpaired_detection_indices] = assign_tracks_to_detections(track_pool, high_confidence_detections, this->match_thresh);

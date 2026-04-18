@@ -63,6 +63,10 @@ private:
     std::vector<KalmanBBoxTrack> extract_kalman_bbox_tracks(const Eigen::MatrixXf dets, const Eigen::VectorXf scores_keep);
     Eigen::MatrixXf select_matrix_rows_by_indices(const Eigen::MatrixXf matrix, const std::vector<int> indices);
     std::pair<std::vector<KalmanBBoxTrack>, std::vector<KalmanBBoxTrack>> filter_and_partition_detections(const Eigen::MatrixXf& output_results);
+    std::vector<KalmanBBoxTrack> validate_detections_against_tracks(
+        const std::vector<KalmanBBoxTrack>& detections,
+        const std::vector<std::shared_ptr<KalmanBBoxTrack>>& tracks
+    );
     std::pair<std::vector<std::shared_ptr<KalmanBBoxTrack>>, std::vector<std::shared_ptr<KalmanBBoxTrack>>> partition_tracks_by_activation();
     std::tuple<std::vector<std::pair<int, int>>, std::set<int>, std::set<int>> assign_tracks_to_detections(
         const std::vector<std::shared_ptr<KalmanBBoxTrack>> tracks,
